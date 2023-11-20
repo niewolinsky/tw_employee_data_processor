@@ -4,6 +4,9 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
+      - echo Logging in to Amazon ECR...
+      - echo $AWS_DEFAULT_REGION
+      - echo $ECR_REPOSITORY_URI
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION || echo "Failed to get login password"
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI || echo "Failed to login to Docker"
   build:
