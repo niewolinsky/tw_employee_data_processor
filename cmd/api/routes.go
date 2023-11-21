@@ -24,6 +24,7 @@ func (app *application) routes() http.Handler {
 	router.Get("/v1/healthcheck", app.hdlGetHealthcheck)
 
 	router.Get("/v1/process/employee/uniqueemails", app.hdlGetUniqueEmails)
+	router.Patch("/v1/process/employee/uniqueemails", app.hdlPatchUniqueEmails)
 
 	return router
 }

@@ -58,8 +58,20 @@ func (app *application) hdlGetUniqueEmails(w http.ResponseWriter, r *http.Reques
 		utils.ServerErrorResponse(w, r, err)
 	}
 
-	err = app.redisClient.Set(context.TODO(), "uniqueDomainsSorted", jsonData, time.Hour*24).Err()
+	err = app.redisClient.Set(context.TODO(), "uniqueDomainsSorted", jsonData, time.Hour*1).Err()
 	if err != nil {
 		slog.Error("failed caching response", "MESSAGE", err)
 	}
+}
+
+func (app *application) hdlPatchUniqueEmails(w http.ResponseWriter, r *http.Request) {
+	cacheKey := "uniqueDomainsSorted"
+
+	err := app.redisClient.Del(context.Background(), cacheKey).Err()
+	if err != nil {
+		utils.ServerErrorResponse(w, r, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, utils.Wrap{"message": "Employee unique domains cache data cleared."}, nil)
 }
