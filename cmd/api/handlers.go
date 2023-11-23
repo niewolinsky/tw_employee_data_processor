@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,10 +12,7 @@ import (
 )
 
 func (app *application) hdlGetUniqueEmails(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	cachedResponse, err := app.redisClient.Get(context.TODO(), "uniqueDomainsSorted").Result()
+	cachedResponse, err := app.redisClient.Get(r.Context(), "uniqueDomainsSorted").Result()
 	if err != nil {
 		switch {
 		case (err.Error() == "redis: nil"):
@@ -39,8 +35,7 @@ func (app *application) hdlGetUniqueEmails(w http.ResponseWriter, r *http.Reques
 		Offset: 0,
 	}
 
-	// Use the gRPC client from the application struct
-	employees, err := app.grpcEmployeeClient.ListEmployees(ctx, req)
+	employees, err := app.grpcEmployeeClient.ListEmployees(r.Context(), req)
 	if err != nil {
 		utils.ServerErrorResponse(w, r, err)
 		return
@@ -58,7 +53,7 @@ func (app *application) hdlGetUniqueEmails(w http.ResponseWriter, r *http.Reques
 		utils.ServerErrorResponse(w, r, err)
 	}
 
-	err = app.redisClient.Set(context.TODO(), "uniqueDomainsSorted", jsonData, time.Hour*1).Err()
+	err = app.redisClient.Set(r.Context(), "uniqueDomainsSorted", jsonData, time.Hour*1).Err()
 	if err != nil {
 		slog.Error("failed caching response", "MESSAGE", err)
 	}
@@ -67,7 +62,7 @@ func (app *application) hdlGetUniqueEmails(w http.ResponseWriter, r *http.Reques
 func (app *application) hdlPatchUniqueEmails(w http.ResponseWriter, r *http.Request) {
 	cacheKey := "uniqueDomainsSorted"
 
-	err := app.redisClient.Del(context.Background(), cacheKey).Err()
+	err := app.redisClient.Del(r.Context(), cacheKey).Err()
 	if err != nil {
 		utils.ServerErrorResponse(w, r, err)
 		return
